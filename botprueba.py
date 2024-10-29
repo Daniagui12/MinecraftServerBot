@@ -56,12 +56,11 @@ async def stop_instance(ctx):
     request.result()
     
 # Function to check and stop VM if it has been running too long
-@tasks.loop(hours=1)
+@tasks.loop(hours=1.1)
 async def check_vm_uptime():
     global vm_start_time
     await bot.wait_until_ready()
     channel = discord.utils.get(bot.get_all_channels(), name='general')  # Adjust to your channel
-    await channel.send("Checking VM uptime...")
     while not bot.is_closed():
         now = datetime.now(colombia_tz)
         elapsed_time = now - vm_start_time
