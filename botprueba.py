@@ -61,7 +61,9 @@ async def check_vm_uptime():
     global vm_start_time
     await bot.wait_until_ready()
     channel = discord.utils.get(bot.get_all_channels(), name='general')  # Adjust to your channel
-    while not bot.is_closed():
+    # Initialize counter
+    attempts = 0
+    while not bot.is_closed() and attempts < 3:
         now = datetime.now(colombia_tz)
         elapsed_time = now - vm_start_time
         if elapsed_time > timedelta(hours=8.4) and now.weekday() < 5:  # Only check Monday to Friday
@@ -69,6 +71,8 @@ async def check_vm_uptime():
             vm_start_time = None  # Reset start time after stopping
             await channel.send("El servidor fue apagado debido a que se excedieron las 8 horas.")
             await channel.send(rg.randomGifUrl())
+        # Increment counter
+        attempts += 1
 
 # Discord bot events
 @bot.event
@@ -87,6 +91,11 @@ async def uptime(ctx):
     else:
         await ctx.send("El servidor se encuentra apagado en este momento.")
         await ctx.send(rg.randomGifUrl())
+
+@bot.command(name='gif')
+async def gif(ctx):
+    await ctx.send(rg.randomGifUrl())
+
 
 # Run the bot
 bot.run(DISCORD_TOKEN)
