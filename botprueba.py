@@ -42,7 +42,7 @@ async def start_instance(ctx):
     try:
         status = get_instance_status()
         if status == 'RUNNING':
-            await ctx.send("El servidor ya está encendido.")
+            await ctx.send("El servidor ya está encendido, no jodan tanto")
             return
 
         now = datetime.now(colombia_tz)
@@ -51,9 +51,13 @@ async def start_instance(ctx):
             return
 
         await ctx.send("Encendiendo el servidor. Esto puede tardar unos minutos. Si en 10 minutos no responde, escribale al mk de Agui")
+        apagado_estimado = now + timedelta(hours=8, minutes=24)
         request = instance_client.start(project=GCP_PROJECT, zone=GCP_ZONE, instance=GCP_INSTANCE_NAME)
         request.result()
-        await ctx.send("El servidor fue encendido correctamente.")
+        await ctx.send(
+            f"✅ El servidor fue encendido correctamente.\n🕕 Encendido: {now.strftime('%H:%M:%S')} "
+            f"\n⏰ Se apagará automáticamente a las: {apagado_estimado.strftime('%H:%M:%S')} (hora Colombia)"
+        )
         vm_start_time = now
 
     except Exception as e:
@@ -62,6 +66,10 @@ async def start_instance(ctx):
 
 @bot.command(name='stop')
 async def stop_instance(ctx):
+    status = get_instance_status()
+    if status == 'TERMINATED':
+        await ctx.send("El servidor ya está apagado. ZZZZZZZZZZZZZZZZZZZ")
+        return
     await ctx.send("Apagando el servidor. Esto puede tardar unos minutos...")
     request = instance_client.stop(project=GCP_PROJECT, zone=GCP_ZONE, instance=GCP_INSTANCE_NAME)
     request.result()
