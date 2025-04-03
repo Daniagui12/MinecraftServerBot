@@ -29,22 +29,33 @@ has_vm_been_8_hours = False
 
 instance_client = compute_v1.InstancesClient()
 
+def get_instance_status():
+    instance = instance_client.get(project=GCP_PROJECT, zone=GCP_ZONE, instance=GCP_INSTANCE_NAME)
+    return instance.status
+
 # Start and stop instance functions
 @bot.command(name='start')
 async def start_instance(ctx):
     global vm_start_time
-    global has_vm_been_8_hours
-    await ctx.send("Encendiendo el servidor. Esto puede tardar unos minutos. Si en 10 minutos no responde, escribale al mk de Agui")
+    await ctx.send("Verificando estado del servidor...")
+
     try:
-        # Send the request to start the instance
-        if has_vm_been_8_hours and datetime.now(colombia_tz).weekday() < 5:
+        status = get_instance_status()
+        if status == 'RUNNING':
+            await ctx.send("El servidor ya está encendido.")
+            return
+
+        now = datetime.now(colombia_tz)
+        if vm_start_time and (now - vm_start_time > timedelta(hours=8)) and now.weekday() < 5:
             await ctx.send("El servidor ha estado corriendo por más de 8 horas. No se puede encender.")
             return
+
+        await ctx.send("Encendiendo el servidor. Esto puede tardar unos minutos. Si en 10 minutos no responde, escribale al mk de Agui")
         request = instance_client.start(project=GCP_PROJECT, zone=GCP_ZONE, instance=GCP_INSTANCE_NAME)
         request.result()
         await ctx.send("El servidor fue encendido correctamente.")
-        vm_start_time = datetime.now(colombia_tz)
-        
+        vm_start_time = now
+
     except Exception as e:
         # Catch any errors in starting the instance
         await ctx.send(f"Error al encender el servidor. Intenta más tarde o escríbele a Agui. Error: {str(e)}")
