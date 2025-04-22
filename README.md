@@ -1,2 +1,3 @@
-# Zelda-DiscordBot
-Discord Bot that tells you how long is left for TOTK
+# MinecraftServerBot
+
+Discord Bot that manages a GCP VM that has a minecraft server running
